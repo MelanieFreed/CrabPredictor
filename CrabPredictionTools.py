@@ -16,6 +16,7 @@ import MySQLdb
 import sys
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
+import scipy as sp
 from sklearn import linear_model
 from sklearn import svm
 from sklearn import cross_validation
@@ -124,10 +125,39 @@ def fit_model(prediction_years, flag_save):
                 pickle.dump([clf, tind], f)
         
     # Return results
-    return clf, mean_norm, stdev_norm, sind, tind
+    return clf, mean_norm, stdev_norm, sind, tind, labels, features
     
 #
 # End fit_model
+#####################################################
+
+
+#####################################################
+# calc_bias_function
+#
+# Calculate bias function
+#
+def calc_bias_function(measured, predicted):
+    """fit = calc_bias_function(measured, predicted)
+
+       Calculate bias function for individual sites. 
+
+       Inputs:
+           measured = measured crab counts
+           predicted = predicted crab counts
+
+       Outputs:    
+           fit = fit results
+    """  
+
+    # Do a linear fit
+    fit = sp.stats.linregress(predicted, measured)
+        
+    # Return results
+    return fit
+    
+#
+# End calc_bias_function
 #####################################################
 
 
@@ -1264,13 +1294,14 @@ def get_cv_r2(labels, features, model):
 # [This was calculated on non-bias corrected predictions
 #  using calcBiasFunction.py]
 #
-def apply_bias_correction(predictions):
+def apply_bias_correction(predictions, fit):
     """predictions_corrected = apply_bias_correction(predictions)
 
        Apply bias correction to predictions. 
 
        Inputs:    
            predictions = predictions you would like to correct
+           fit = fit from calc_bias_correction
 
        Outputs:
            predictions_corrected = predictions corrected for model bias
@@ -1278,8 +1309,7 @@ def apply_bias_correction(predictions):
     """
 
     # Apply correction
-    # measured = 0.5093278406339744 * prediction + 0.012577221791782472
-    predictions_corrected = predictions * np.float64(0.5093278406339744) + np.float64(0.012577221791782472)
+    predictions_corrected = predictions * fit[0] + fit[1]
     ind = np.where(predictions_corrected < 0)[0]
     predictions_corrected[ind] = 0.0
 
