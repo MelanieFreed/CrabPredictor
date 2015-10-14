@@ -36,8 +36,10 @@ def main():
 
 
     for yr in range(1995, 2015):
-        train_years = range(1995, 2015)
-        train_years.remove(yr)
+        train_years = range(1991, 2015)
+        train_years = [yy for yy in train_years if yy < yr]
+        #train_years = range(1995, 2015)
+        #train_years.remove(yr)
         clf, mean_norm, stdev_norm, sind, tind, train_labels, train_features = cpt.fit_model(train_years, False)
         # Get bias correction
         train_measured = train_labels
